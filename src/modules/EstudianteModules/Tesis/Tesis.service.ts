@@ -2,7 +2,8 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Tesis } from "./Tesis.entity";
 import { Repository } from "typeorm";
 import { EstudianteService } from "../Estudiante/Estudiante.service";
-import { TokenService } from "../Token/Token.service";
+import { TokenService } from "../../Token/Token.service";
+import { fromBuffer } from "file-type";
 
 export class TesisService{
     constructor (
@@ -85,13 +86,14 @@ export class TesisService{
                 };
             }
 
-            const tipo = "application/pdf";
+            
             const contenido = await Buffer.from(tesis,'base64');
+            const tipo = await fromBuffer(contenido);
         
             const nuevaTesis = new Tesis();
             nuevaTesis.titulo = titulo;
             nuevaTesis.contenido = contenido;
-            nuevaTesis.tipo = tipo;
+            nuevaTesis.tipo = tipo.mime;
             nuevaTesis.fecha_publicacion = fechaPublicacion;
             nuevaTesis.resumen = resumen;
 

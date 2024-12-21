@@ -4,7 +4,7 @@ import { Tesis } from "./Tesis.entity";
 import { TesisService } from "./Tesis.service";
 import { TesisController } from "./Tesis.controller";
 import { EstudianteModule } from "../Estudiante/Estudiante.module";
-import { TokenModule } from "../Token/Token.module";
+import { TokenModule } from "../../Token/Token.module";
 
 @Module({
     imports: [

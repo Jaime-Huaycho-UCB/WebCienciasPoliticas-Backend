@@ -7,7 +7,7 @@ import * as crypto from 'crypto';
 export class TokenService {
     constructor(
         @InjectRepository(Token)
-        private readonly tokenRepository: Repository<Token>,
+        private readonly tokenRepository: Repository<Token>
     ) {}
     
     async crearToken(idUsuario){
@@ -16,9 +16,9 @@ export class TokenService {
         try {
             const codigo = await this.generarToken();
 
-            const creacion = tiempoActual.toISOString();
-            tiempoActual.setMinutes(tiempoActual.getMinutes() + 10);
-            const expiracion = tiempoActual.toISOString();
+            const creacion = this.formatearFecha(tiempoActual);
+            tiempoActual.setMinutes(tiempoActual.getMinutes() + 2);
+            const expiracion = this.formatearFecha(tiempoActual);
 
             const respuesta = await this.tokenRepository.update({
                     usuario: idUsuario
@@ -53,17 +53,17 @@ export class TokenService {
     async tokenValido(data){
         const {idUsuario,token} =data;
         const objetoToken = await this.obtenerToken(idUsuario);
-        if (objetoToken && objetoToken.codigo === token) {
+        if (objetoToken && objetoToken.codigo == token) {
             const expiracionToken = new Date(objetoToken.expiracion);
             const tiempoActual = new Date();
             if (expiracionToken >= tiempoActual) {
                 return {
-                    salida: this.extenderTiempoExpiracion(objetoToken.id)
-                }
+                    salida: await this.extenderTiempoExpiracion(objetoToken.id),
+                };
             } else {
                 return {
                     salida: false,
-                    mensaje: "TKIN"
+                    mensaje: "TKIN",
                 };
             }
         } else {
@@ -75,22 +75,61 @@ export class TokenService {
     }
     
     async obtenerToken(idUsuario: number){
-        return await this.tokenRepository.findOne({ where: { usuario: idUsuario, eliminado: 0 } });
+        return await this.tokenRepository.findOne({ where: { usuario: idUsuario, Eliminado: 0 } });
     }
 
-    async eliminarToken(id: number){
-        await this.tokenRepository.update({ usuario: id }, { eliminado: 1 });
+    async eliminarToken(id){
+        try {
+            await this.tokenRepository.update({ usuario: id }, { Eliminado: 1 });
+            return {
+                salida: true
+            }
+        } catch (error) {
+            return {
+                salida: false,
+                mensaje: error.message
+            }
+        }
     }
     
-    async extenderTiempoExpiracion(idToken){
+    async extenderTiempoExpiracion(idToken) {
         try {
             const tiempoActual = new Date();
-            tiempoActual.setMinutes(tiempoActual.getMinutes() + 10); 
-            await this.tokenRepository.update(idToken, { expiracion: tiempoActual.toDateString() });
+            tiempoActual.setMinutes(tiempoActual.getMinutes() + 2);
+            await this.tokenRepository.update({id: idToken}, { expiracion: this.formatearFecha(tiempoActual) });
             return true;
         } catch (error) {
             console.error(error);
             return false;
         }
+    }
+
+    async inicializarToken(idUsuario){
+        try {
+            const token = new Token();
+            token.usuario = idUsuario;
+            token.codigo=null;
+            token.creacion=null;
+            token.expiracion = null;
+            await this.tokenRepository.save(token);
+            return {
+                salida: true
+            }
+        } catch (error) {
+            return {
+                salida: false,
+                mensaje: error.message
+            }
+        }
+    }
+
+    private formatearFecha(fecha: Date): string {
+        const anio = fecha.getFullYear();
+        const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+        const dia = String(fecha.getDate()).padStart(2, '0');
+        const horas = String(fecha.getHours()).padStart(2, '0');
+        const minutos = String(fecha.getMinutes()).padStart(2, '0');
+        const segundos = String(fecha.getSeconds()).padStart(2, '0');
+        return `${anio}-${mes}-${dia} ${horas}:${minutos}:${segundos}`;
     }
 }

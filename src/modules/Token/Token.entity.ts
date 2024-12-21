@@ -19,5 +19,5 @@ export class Token {
     expiracion: Date;
 
     @Column()
-    eliminado: number;
+    Eliminado: number;
 }

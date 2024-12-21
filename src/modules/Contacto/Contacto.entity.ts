@@ -1,19 +1,19 @@
 import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
 
-@Entity('USUARIO')
-export class Usuario {
-
+@Entity('CONTACTO')
+export class Contacto {
+    
     @PrimaryGeneratedColumn()
     id: number
 
-    @Column({type: 'varchar', length: 255})
-    contrasena: string
+    @Column()
+    nombre: string
 
     @Column()
-    permiso: number
+    correo: string
 
     @Column()
-    docente: number
+    papel: string
 
     @Column()
     Eliminado: number

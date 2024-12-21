@@ -22,5 +22,5 @@ export class Docente {
     foto: number
 
     @Column()
-    eliminado: number
+    Eliminado: number
 }

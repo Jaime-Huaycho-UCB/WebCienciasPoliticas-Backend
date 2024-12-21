@@ -1,6 +1,7 @@
 import { InjectRepository } from "@nestjs/typeorm";
 import { Foto } from "./Foto.entity";
 import { Repository } from "typeorm";
+import { fromBuffer } from "file-type";
 
 
 export class FotoService {
@@ -15,18 +16,11 @@ export class FotoService {
             if (foto==null){
                 return null
             }    
-            const regex = /^data:(image\/[a-zA-Z]+);base64,/;
-            const matches = foto.match(regex);
-
-            if (!matches || matches.length < 2) {
-                throw new Error('Formato base64 inválido o tipo de imagen no encontrado');
-            }
-
-            const tipo = matches[1];
             const contenido = Buffer.from(foto,'base64');
+            const tipo = await fromBuffer(contenido);
             const fotoNuevo = new Foto();
             fotoNuevo.contenido = contenido;
-            fotoNuevo.tipo = tipo;
+            fotoNuevo.tipo = tipo.mime;
             const fotoGuardado = await this.fotoRepository.save(fotoNuevo);
             return fotoGuardado.id
         } catch (error) {
